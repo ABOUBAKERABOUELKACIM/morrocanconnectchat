@@ -57,7 +57,7 @@ function chatbotResponse(messagetxt) {
     }
 });*/
 
-chatInput.addEventListener("keypress", function (event) {
+/*chatInput.addEventListener("keypress", function (event) {
     if (event.keyCode === 13) {
         
 
@@ -99,7 +99,7 @@ chatInput.addEventListener("keypress", function (event) {
             alert("Please enter a message before sending.");
         }
     }
-});
+});*/
 
 $(document).ready(function() {
     $("#SentButtonhg").click(function() {

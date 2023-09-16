@@ -63,7 +63,7 @@ if (cluster.isMaster) {
         
         
         // Constructing a more detailed prompt based on the user message
-        const prompt = `This  message  either gonna be helprequest or helpoffre or otherrequest(like question etc) soo just response with one word and it should either one of three words : "${userMessage}". `;
+        const prompt = `This  message  either gonna be helprequest or helpoffre or complaint or otherrequest(like question etc) soo just response with one word and it should either one of three words : "${userMessage}". `;
 
         
         const response = await openai.chat.completions.create({
@@ -199,6 +199,73 @@ if (cluster.isMaster) {
                                 }
                             },
                             "required": ["full_name", "contact_information", "current_location", "type_of_assistance_needed","output"]
+                        }
+                    },
+                ];
+
+                const response = await openai.chat.completions.create({
+                    model: "gpt-4-0613",
+                    messages: messages,
+                    functions: functions,
+                    function_call: "auto",  // auto is default, but we'll be explicit
+                });
+                const responseMessage = response.choices[0].message["function_call"];
+                let args = JSON.parse(responseMessage["arguments"]);
+                let outputValue = args.output;
+                console.log(outputValue);
+                FlexibleData.create(args)
+                .then(doc => {
+                    console.log('Data saved:', doc);
+                })
+                .catch(error => {
+                    console.error('Error saving data:', error.message);
+                });
+                res.send({ message: outputValue });
+            }
+            else if(response.choices[0].message["content"]=="complaint")
+            {
+                const messages = [{"role": "user", "content":userMessage }];
+                const functions = [
+                    {
+                        "name": "request_help_info",
+                        "description": "Get the information from someone that offres help",
+                        "parameters": {
+                            "type": "object",
+                            "properties": {
+                                "full_name": {
+                                    "type": "string",
+                                    "description": "Full name of the person requesting help"
+                                },
+                                "contact_information": {
+                                    "type": "string",
+                                    "description": "Immediate contact details"
+                                },
+                                "current_location": {
+                                    "type": "string",
+                                    "description": "Exact location where help is needed"
+                                },
+                                "type_of_complaint": {
+                                    "type": "string",
+                                    "description": "Specific type of complaint required"
+                                },
+                                "complaint": {
+                                    "type": "number",
+                                    "description": "summarize the complaint"
+                                },
+                                "health_conditions": {
+                                    "type": "string",
+                                    "description": "Any crucial health conditions or injuries"
+                                },
+                                "other": {
+                                    "type": "string",
+                                    "description": "rest of the message"
+                                },
+                                "output": {
+                                    "type": "string",
+                                    "description": "small message to thank him for the information in the language of the request sent "
+                                }
+                            },
+                            "required": ["full_name", "contact_information", "current_location", "type_of_complaint","output"]
                         }
                     },
                 ];
